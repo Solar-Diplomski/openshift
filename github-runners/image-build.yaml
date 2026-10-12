@@ -1,0 +1,47 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: openshift-custom-runner
+  namespace: github-runners
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: openshift-custom-runner
+  namespace: github-runners
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: openshift-custom-runner:latest
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM quay.io/redhat-github-actions/runner:latest
+
+      USER root
+
+      # Install Maven
+      ENV MAVEN_VERSION=3.9.6
+      # Install Maven 3.9.6 from Apache archive
+      RUN curl -fsSL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | \
+          tar -xz -C /opt && \
+          ln -s /opt/apache-maven-3.9.6 /opt/maven
+      ENV MAVEN_HOME=/opt/maven
+      ENV PATH=$MAVEN_HOME/bin:$PATH
+
+      # Install Python and pip
+      RUN dnf install -y python3 && \
+          ln -s /usr/bin/python3 /usr/bin/python && \
+          python3 -m ensurepip && \
+          pip3 install --upgrade pip
+
+      # Install OpenShiftCLI
+      RUN curl -L -o /tmp/oc.tar.gz "https://github.com/okd-project/okd/releases/download/4.19.0-okd-scos.0/openshift-client-linux-4.19.0-okd-scos.0.tar.gz" && \
+      tar -xzf /tmp/oc.tar.gz -C /usr/local/bin oc && \
+      chmod +x /usr/local/bin/oc && \
+      rm -rf /tmp/oc.tar.gz
+
+      USER $UID    
+  strategy:
+    type: Docker

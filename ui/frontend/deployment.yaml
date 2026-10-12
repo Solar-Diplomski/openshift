@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solar-frontend
+  namespace: solar
+  labels:
+    app: solar-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solar-frontend
+  template:
+    metadata:
+      labels:
+        app: solar-frontend
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+        - name: solar-frontend
+          image: image-registry.openshift-image-registry.svc:5000/solar/solar-frontend:latest
+          ports:
+            - containerPort: 5173
+          

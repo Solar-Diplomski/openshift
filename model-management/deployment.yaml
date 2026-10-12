@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solar-model-management
+  namespace: solar
+  labels:
+    app: solar-model-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solar-model-management
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: solar-model-management
+    spec:
+      containers:
+        - name: solar-model-management
+          image: image-registry.openshift-image-registry.svc:5000/solar/solar-model-management:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - name: models
+              mountPath: /opt/app-root/src/models
+          env:
+            - name: PORT
+              value: "8080"
+            - name: MODEL_STORAGE_PATH
+              value: /opt/app-root/src/models
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432" 
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(POSTGRES_DB)"
+            - name: PREDICTION_SERVICE_URL
+              value: "http://solar-prediction"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: models-pvc

@@ -1,0 +1,23 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: model-management-s2i-build
+  namespace: solar-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/Solar-Diplomski/solar-model-management.git
+      ref: prod
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: "python:3.12-ubi8"
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "solar-model-management:latest"
+      namespace: solar

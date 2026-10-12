@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: models-pvc
+  namespace: solar
+spec:
+  accessModes:
+     - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  securityContext:
+    fsGroup: 1000730000
+  volumeName: models-pv

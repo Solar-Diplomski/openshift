@@ -1,0 +1,18 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  namespace: solar-build
+  name: timescaledb-okd-build
+spec:
+  source:
+    dockerfile: |
+      FROM timescale/timescaledb:latest-pg17-bitnami
+      RUN mkdir -p /bitnami/postgresql/data
+      RUN chgrp -R 0  /bitnami/postgresql/data && chmod -R g=u  /bitnami/postgresql/data
+  strategy:
+      dockerStrategy: {}
+  output:
+      to:
+        kind: ImageStreamTag
+        name: 'okd-timescaledb:latest'
+        namespace: solar

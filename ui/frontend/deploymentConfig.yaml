@@ -1,0 +1,27 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: solar-frontend
+spec:
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - solar-frontend
+        from:
+          kind: ImageStreamTag
+          name: solar-frontend:latest
+  replicas: 1
+  selector:
+    app: solar-frontend
+  template:
+    metadata:
+      labels:
+        app: solar-frontend
+    spec:
+      containers:
+        - name: solar-frontend
+          image: ""
+          ports:
+            - containerPort: 5173

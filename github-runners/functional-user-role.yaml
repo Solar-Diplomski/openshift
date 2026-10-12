@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-actions-token
+  annotations:
+    kubernetes.io/service-account.name: github-actions
+type: kubernetes.io/service-account-token
+---
+# Role for triggering builds
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: build-trigger
+  namespace: solar-build
+rules:
+  - apiGroups: ["build.openshift.io"]
+    resources: ["buildconfigs", "buildconfigs/instantiate", "builds", "builds/log"]
+    verbs: ["get", "list", "watch", "create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: bind-build-trigger
+  namespace: solar-build
+subjects:
+  - kind: ServiceAccount
+    name: github-actions
+    namespace: github-runners
+roleRef:
+  kind: Role
+  name: build-trigger
+  apiGroup: rbac.authorization.k8s.io
+---
+# Role for restarting deployments in solar namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: trigger-deployments
+  namespace: solar
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: bind-restart-deployments
+  namespace: solar
+subjects:
+  - kind: ServiceAccount
+    name: github-actions
+    namespace: github-runners
+roleRef:
+  kind: Role
+  name: trigger-deployments
+  apiGroup: rbac.authorization.k8s.io

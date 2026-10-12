@@ -1,0 +1,52 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: frontend-s2i-build
+  namespace: solar-build
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/Solar-Diplomski/solar-prediction-ui.git
+      ref: prod
+    contextDir: solar-forecast
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: "nodejs:latest"
+        namespace: openshift
+      env:
+        - name: VITE_AUTH0_DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: VITE_AUTH0_DOMAIN
+        - name: VITE_AUTH0_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: VITE_AUTH0_CLIENT_ID
+        - name: VITE_AUTH0_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: VITE_AUTH0_REDIRECT_URI
+        - name: VITE_AUTH0_AUDIENCE
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: VITE_AUTH0_AUDIENCE
+        - name: VITE_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: VITE_API_URL
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "solar-frontend:latest"
+      namespace: "solar"

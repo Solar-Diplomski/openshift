@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solar-ui-api
+  namespace: solar
+  labels:
+    app: solar-ui-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solar-ui-api
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: solar-ui-api
+    spec:
+      containers:
+        - name: solar-ui-api
+          image: image-registry.openshift-image-registry.svc:5000/solar/solar-ui-api:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          env:
+            - name: APP_FILE 
+              value: api.py
+            - name: PORT
+              value: "8080"
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432" 
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(POSTGRES_DB)"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 300
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 5

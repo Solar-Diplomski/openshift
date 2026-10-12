@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: solar-api-gateway
+  namespace: solar
+spec:
+  to:
+    kind: Service
+    name: solar-api-gateway
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge

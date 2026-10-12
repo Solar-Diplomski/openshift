@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: solar-frontend
+  namespace: solar
+spec:
+  selector:
+    app: solar-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5173
+type: ClusterIP

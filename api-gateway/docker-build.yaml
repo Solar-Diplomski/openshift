@@ -1,0 +1,22 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: api-gateway-docker-build
+  namespace: solar-build
+spec:
+  securityContext:
+    runAsNonRoot: true
+    fsGroup: 1000730000
+  source:
+    type: Git
+    git:
+      uri: "https://github.com/Solar-Diplomski/solar-api-gateway.git"
+      ref: "prod"
+  strategy:
+    type: Docker # OKD is missing S2I builder image for OpenJDK 21 so Dockerfile is used
+    dockerStrategy: {}
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "solar-api-gateway:latest"
+      namespace: solar

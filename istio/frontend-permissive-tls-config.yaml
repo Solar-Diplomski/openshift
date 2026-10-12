@@ -1,0 +1,11 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: frontend
+  namespace: solar
+spec:
+  selector:
+    matchLabels:
+      app: solar-frontend
+  mtls:
+    mode: PERMISSIVE

@@ -1,0 +1,24 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: ui-api-s2i-build
+  namespace: solar-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/Solar-Diplomski/solar-prediction-ui.git
+      ref: prod
+    contextDir: api
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: "python:3.12-ubi8"
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "solar-ui-api:latest"
+      namespace: solar

@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-prediction-migrations
+  namespace: solar
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+      runAsUser: 1000730000
+      runAsGroup: 1000730000
+      fsGroup: 1000730000
+      runAsNonRoot: true
+      containers:
+        - name: run-migrations
+          image: timescale/timescaledb:latest-pg17-bitnami
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              echo "Waiting for DB..."
+              until pg_isready -h postgres -p 5432 -U "$POSTGRES_USER"; do sleep 2; done
+
+              echo "Cloning repo..."
+              git clone https://github.com/Solar-Diplomski/solar-prediction.git /workspace
+              
+              echo "Check tree"
+              ls -l /workspace
+              echo "Running SQL files..."
+              export PGPASSWORD=$POSTGRES_PASSWORD
+              for f in /workspace/migrations/*.sql; do
+                echo "Applying $f..."
+                psql -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f "$f"
+              done
+              unset PGPASSWORD
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - name: migration-volume
+              mountPath: /workspace
+      volumes:
+        - name: migration-volume
+          emptyDir: {}

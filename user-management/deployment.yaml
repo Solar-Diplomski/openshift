@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solar-user-management
+  namespace: solar
+  labels:
+    app: solar-user-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solar-user-management
+  template:
+    metadata:
+      labels:
+        app: solar-user-management
+        istio-injection: enabled
+    spec:
+      containers:
+        - name: solar-user-management
+          image: image-registry.openshift-image-registry.svc:5000/solar/solar-user-management:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: auth0-secret
+          env:
+            - name: APP_NAME
+              value: solar-user-management
+            - name: PORT
+              value: "8080"
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - solar-user-management
+        from:
+          kind: ImageStreamTag
+          name: solar-user-management:latest
+            
+            
